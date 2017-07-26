@@ -299,92 +299,94 @@ class Main is Game
             end
         end
 
-        if monitor:IsKeyPressed(keys:A)
-            if not playing
-                playing = true
-                
-                integer speed = cast(integer,math:SquareRoot( math:RaiseToPower(ship:GetLinearVelocity():GetX(),2) + math:RaiseToPower(ship:GetLinearVelocity():GetY(),2)))
-                text spd = speed:GetText()
-                if not advMode
-                    speech:Say("speed is " + spd,false)
-                else
-                    speech:Say(spd,false)
-                end
-                
-            end
-        else 
-            playing = false
-        end
+        
+//        if monitor:IsKeyPressed(keys:A)
+//            if not playing
+//                playing = true
+//                
+//                integer speed = cast(integer,math:SquareRoot( math:RaiseToPower(ship:GetLinearVelocity():GetX(),2) + math:RaiseToPower(ship:GetLinearVelocity():GetY(),2)))
+//                text spd = speed:GetText()
+//                if not advMode
+//                    speech:Say("speed is " + spd,false)
+//                else
+//                    speech:Say(spd,false)
+//                end
+//                
+//            end
+//        else 
+//            playing = false
+//        end
+//
+//        if monitor:IsKeyPressed(keys:Z)
+//            if not playing
+//                integer posX = cast(integer,ship:GetX())
+//                integer posY = cast(integer,ship:GetY())
+//                if not advMode
+//                    speech:Say("Ship position " + posX:GetText() + " " +  posY:GetText(),false)
+//                else
+//                    speech:Say(posX:GetText() + " " + posY:GetText(),false)
+//                end 
+//            end
+//        else
+//            playing = false
+//        end
+//
+//        if monitor:IsKeyPressed(keys:X)
+//            if not playing
+//                integer posX = cast(integer,alien:GetX())
+//                integer posY = cast(integer,alien:GetY())
+//                if not advMode
+//                    speech:Say("Alien position " + posX:GetText() + " " +  posY:GetText(),false)
+//                else
+//                    speech:Say(posX:GetText() + " " + posY:GetText(),false)
+//                end 
+//            end
+//        else
+//            playing = false
+//        end
+//
+//        if monitor:IsKeyPressed(keys:S)
+//            if not playing
+//                if not advMode
+//                    speech:Say("Total aliens rescued is  " + points:GetText(),false)
+//                else
+//                    speech:Say(points:GetText(),false)
+//                end 
+//            end
+//        else
+//            playing = false
+//        end
+//
+//        if monitor:IsKeyPressed(keys:Q)
+//            if not playing
+//                integer clock = cast(integer,math:Round((ship:GetRotation() mod 360)/30))
+//                if clock <= 0 
+//                    clock = clock + 12
+//                end
+//                if not advMode
+//                    speech:Say("Ship orientation " + clock:GetText(),false)
+//                else
+//                    speech:Say(clock:GetText(),false)
+//                end 
+//            end
+//        else
+//            playing = false
+//        end
+//
+//        if monitor:IsKeyPressed(keys:TAB)
+//            if not pressingTab
+//                pressingTab = true
+//                if not advMode
+//                    speech:Say("Advanced mode on",false)
+//                    advMode = true
+//                else
+//                    speech:Say("Advanced mode off",false)
+//                    advMode = false
+//                end
+//            end
+//        else
+//            pressingTab = false
+//        end
 
-        if monitor:IsKeyPressed(keys:Z)
-            if not playing
-                integer posX = cast(integer,ship:GetX())
-                integer posY = cast(integer,ship:GetY())
-                if not advMode
-                    speech:Say("Ship position " + posX:GetText() + " " +  posY:GetText(),false)
-                else
-                    speech:Say(posX:GetText() + " " + posY:GetText(),false)
-                end 
-            end
-        else
-            playing = false
-        end
-
-        if monitor:IsKeyPressed(keys:X)
-            if not playing
-                integer posX = cast(integer,alien:GetX())
-                integer posY = cast(integer,alien:GetY())
-                if not advMode
-                    speech:Say("Alien position " + posX:GetText() + " " +  posY:GetText(),false)
-                else
-                    speech:Say(posX:GetText() + " " + posY:GetText(),false)
-                end 
-            end
-        else
-            playing = false
-        end
-
-        if monitor:IsKeyPressed(keys:S)
-            if not playing
-                if not advMode
-                    speech:Say("Total aliens rescued is  " + points:GetText(),false)
-                else
-                    speech:Say(points:GetText(),false)
-                end 
-            end
-        else
-            playing = false
-        end
-
-        if monitor:IsKeyPressed(keys:Q)
-            if not playing
-                integer clock = cast(integer,math:Round((ship:GetRotation() mod 360)/30))
-                if clock <= 0 
-                    clock = clock + 12
-                end
-                if not advMode
-                    speech:Say("Ship orientation " + clock:GetText(),false)
-                else
-                    speech:Say(clock:GetText(),false)
-                end 
-            end
-        else
-            playing = false
-        end
-
-        if monitor:IsKeyPressed(keys:TAB)
-            if not pressingTab
-                pressingTab = true
-                if not advMode
-                    speech:Say("Advanced mode on",false)
-                    advMode = true
-                else
-                    speech:Say("Advanced mode off",false)
-                    advMode = false
-                end
-            end
-        else
-            pressingTab = false
-        end
     end
 end
