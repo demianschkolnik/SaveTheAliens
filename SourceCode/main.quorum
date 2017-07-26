@@ -1,0 +1,360 @@
+use Libraries.Game.Game
+use Libraries.Game.Graphics.Drawable
+use Libraries.Interface.Events.KeyboardEvent
+use Libraries.Game.InputMonitor
+use Libraries.Compute.Vector2
+use Libraries.Compute.Math
+use Libraries.Sound.Instrument
+use Libraries.Sound.Music
+use Libraries.Sound.Note
+use Libraries.Compute.Random
+use Libraries.System.DateTime
+use Libraries.Sound.Speech
+use Libraries.Game.Graphics.Label
+use Libraries.Game.Graphics.Color
+use Libraries.Sound.Audio
+
+/*
+    This is a default class for creating a game in Quorum. Note that the Main 
+    action begins by calling StartGame(), which loads a window a game can 
+    be displayed in. The action CreateGame is where the game should load any 
+    assets, like images to be displayed, frames of animation, or sounds to be
+    played. 
+*/
+class Main is Game
+    //Settings
+    number rotSpeed = 50.0
+    number thrustForce = 25.0
+    number damping = 0.1
+    integer initialSeconds = 69
+    number proximityDelta = 40.0
+    number timeBonus = 30.0
+    
+    
+    Color color
+
+    Audio sound
+    Audio soundR
+    Audio soundL
+    Audio soundAlien
+
+    Audio beepShip
+    Audio beepAlien
+
+    number remainingTime = initialSeconds
+    integer remainingDecTime = cast(integer,(remainingTime/10))*10
+    Drawable ship
+    InputMonitor monitor
+    KeyboardEvent keys
+    Drawable thruster
+    
+    Drawable alien
+    
+    boolean advMode = false
+    boolean pressingTab = false
+    boolean playingSound = false
+    boolean playingSoundR = false
+    boolean playingSoundL = false
+
+
+    //labels
+    Label labelPoints
+    Label labelTime
+    
+    integer points = 0
+
+    Speech speech
+    Random random
+    Math math
+    boolean playing = false
+    action Main
+        StartGame()
+    end
+
+    /*
+        This action sets up the default values for a game. For example, we might
+        use the Libraries.Game.Graphics.Drawable class to load up an image or 
+        a shape. Or, we might add a Libraries.Interface.Button for making something clickable
+        or a Libraries.Interface.TextBox for gathering user input in a game.
+    */
+    action CreateGame
+        
+       DateTime datetime
+       random:SetSeed(datetime:GetEpochTime())
+
+       sound:Load("Sounds/Rocket.wav")
+       soundR:Load("Sounds/rot.wav")
+       soundL:Load("Sounds/rot.wav")
+       soundAlien:Load("Sounds/Hello.wav")
+
+       beepAlien:Load("Sounds/alien.wav")
+       beepShip:Load("Sounds/ship.wav")
+
+    //Load Assets
+
+        Drawable bg
+        bg:Load("Assets/BG.jpg")
+        Add(bg)
+
+        alien:Load("Assets/alien2.png")
+        alien:SetPosition(random:RandomNumber()*800,random:RandomNumber()*600)
+        Add(alien)
+        
+        ship:Load("Assets/ship2.png")
+        
+        ship:SetPosition(random:RandomNumber()*800,random:RandomNumber()*600)
+        Add(ship)
+            
+        
+        thruster:Load("Assets/thruster2.png")
+        thruster:EnablePhysics(true)
+       
+        thruster:SetPosition(15,-21)
+        ship:Add(thruster)
+        
+
+        ship:EnablePhysics(true)
+        ship:SetResponsive()
+        ship:SetLinearDamping(damping)
+    
+    //Labels
+
+        Label label
+        label:SetText("Points:")
+        label:SetPosition(12, 545)
+        Drawable bgl1
+        bgl1:LoadFilledRectangle(100, 20,color:White())
+        bgl1:SetPosition(10,540)
+        Add(bgl1)
+        Drawable bgl2
+        bgl2:LoadFilledRectangle(100, 20,color:White())
+        bgl2:SetPosition(10,510)
+        Add(bgl2)   
+        Add(label) 
+        labelPoints:SetText("0")
+        labelPoints:SetPosition(70,545)
+        Add(labelPoints)
+        labelTime:SetText(cast(text,remainingTime:GetText()))
+        labelTime:SetPosition(70,515)
+        Add(labelTime)
+        Label label2
+        label2:SetText("Time:")
+        label2:SetPosition(12, 515)
+        Add(label2)
+       
+
+    //Configure Physics stuff
+        EnablePhysics2D(true)
+        /*
+        say "Welcome to alien savior!"
+        say "Your objective is to find and collect as many Aliens as possible."
+        say "Use the up key to thrust your ship forward."
+        say "Use the left and right keys to rotate your ship."
+        say "Use the Zee key to hear your ships position."
+        say "Use the A key to hear your ships speed."
+        say "Use the Q key to hear your ships orientation."
+        say "Use the X key to hear the aliens position."
+        say "Use the S key to hear how many aliens you have rescued this far."
+        say "Use the tab key to activate advance mode."
+        say "Aliens will say. Hello! When you rescue them."
+        say "You win " + timeBonus:GetText() + " seconds each time you rescue an Alien."
+        say "Are you ready? Go!"*/
+
+        beepAlien:Play()
+        beepAlien:EnableLooping()
+        beepShip:Play()
+        beepShip:EnableLooping()
+        
+    end
+
+    /*
+        The update action is called on every "frame" of animation in a game. This
+        action should be used to do operations on items. So, for example, we 
+        might use this action to change frames of animation, to rotate items, 
+        or to make creatures jump.
+    */
+    action Update(number seconds)
+        //update timer
+        remainingTime = remainingTime - seconds
+        integer remTime = cast(integer,remainingTime)
+        labelTime:SetText(cast(text,remTime:GetText()))
+        if remainingTime <= 0
+            say "Time is Over!"
+            say "You rescued " + points:GetText() + " aliens. Good job!"
+            Exit()
+        end
+        if remainingTime < remainingDecTime
+            speech:Say(remainingDecTime:GetText() + " seconds remaining")
+            remainingDecTime = cast(integer,(remainingTime/10))*10
+        end
+
+         beepAlien:SetX(alien:GetX())
+        beepAlien:SetY(alien:GetY())
+        beepShip:SetX(ship:GetX())
+        beepShip:SetY(ship:GetY())
+
+        //check win condition
+        number distance = math:SquareRoot(math:RaiseToPower(ship:GetX()-alien:GetX(),2)+math:RaiseToPower(ship:GetY()-alien:GetY(),2))
+        if distance < proximityDelta
+            soundAlien:Play()
+            alien:SetPosition(random:RandomNumber()*800,random:RandomNumber()*600)
+            remainingTime = remainingTime + timeBonus
+            points = points + 1
+            labelPoints:SetText(points:GetText())
+            
+        end
+        
+        //check borders
+        if ship:GetX() > 803
+            ship:SetX(ship:GetX() mod 800)
+        end
+        if ship:GetX() < -37
+            ship:SetX(ship:GetX() + 800)
+        end
+        if ship:GetY() > 603
+            ship:SetY(ship:GetY() mod 600)
+        end
+        if ship:GetY() < -2
+            ship:SetY(ship:GetY() + 600)
+        end
+
+
+        //Keys
+        if monitor:IsKeyPressed(keys:UP)
+            if not playingSound
+                playingSound = true
+                sound:Play()
+            end
+            Vector2 force
+            number rot = ship:GetRotationInRadians()
+
+            number compX = thrustForce*math:Sine(rot)
+            number compY = thrustForce*math:Cosine(rot)
+            force:Set(compX,compY)
+            
+            ship:ApplyForceToCenter(force)
+            thruster:Show()
+        else
+            if playingSound
+                sound:Stop()
+            end
+            playingSound = false
+            thruster:Hide()
+        end
+
+        if monitor:IsKeyPressed(keys:LEFT)
+            if not playingSoundL
+                playingSoundL = true
+                
+                soundL:Play()
+            end
+            ship:Rotate(-rotSpeed*seconds)
+        else
+            if playingSoundL
+                soundL:Stop()
+            end
+            playingSoundL = false
+        end
+
+        if monitor:IsKeyPressed(keys:RIGHT)
+            if not playingSoundR
+                playingSoundR = true
+                soundR:Play()
+            end
+            ship:Rotate(rotSpeed*seconds)
+        else
+            if playingSoundR
+                soundR:Stop()
+            end
+            playingSoundR = false
+        end
+
+        if monitor:IsKeyPressed(keys:A)
+            if not playing
+                playing = true
+                
+                integer speed = cast(integer,math:SquareRoot( math:RaiseToPower(ship:GetLinearVelocity():GetX(),2) + math:RaiseToPower(ship:GetLinearVelocity():GetY(),2)))
+                text spd = speed:GetText()
+                if not advMode
+                    speech:Say("speed is " + spd,false)
+                else
+                    speech:Say(spd,false)
+                end
+                
+            end
+        else 
+            playing = false
+        end
+
+        if monitor:IsKeyPressed(keys:Z)
+            if not playing
+                integer posX = cast(integer,ship:GetX())
+                integer posY = cast(integer,ship:GetY())
+                if not advMode
+                    speech:Say("Ship position " + posX:GetText() + " " +  posY:GetText(),false)
+                else
+                    speech:Say(posX:GetText() + " " + posY:GetText(),false)
+                end 
+            end
+        else
+            playing = false
+        end
+
+        if monitor:IsKeyPressed(keys:X)
+            if not playing
+                integer posX = cast(integer,alien:GetX())
+                integer posY = cast(integer,alien:GetY())
+                if not advMode
+                    speech:Say("Alien position " + posX:GetText() + " " +  posY:GetText(),false)
+                else
+                    speech:Say(posX:GetText() + " " + posY:GetText(),false)
+                end 
+            end
+        else
+            playing = false
+        end
+
+        if monitor:IsKeyPressed(keys:S)
+            if not playing
+                if not advMode
+                    speech:Say("Total aliens rescued is  " + points:GetText(),false)
+                else
+                    speech:Say(points:GetText(),false)
+                end 
+            end
+        else
+            playing = false
+        end
+
+        if monitor:IsKeyPressed(keys:Q)
+            if not playing
+                integer clock = cast(integer,math:Round((ship:GetRotation() mod 360)/30))
+                if clock <= 0 
+                    clock = clock + 12
+                end
+                if not advMode
+                    speech:Say("Ship orientation " + clock:GetText(),false)
+                else
+                    speech:Say(clock:GetText(),false)
+                end 
+            end
+        else
+            playing = false
+        end
+
+        if monitor:IsKeyPressed(keys:TAB)
+            if not pressingTab
+                pressingTab = true
+                if not advMode
+                    speech:Say("Advanced mode on",false)
+                    advMode = true
+                else
+                    speech:Say("Advanced mode off",false)
+                    advMode = false
+                end
+            end
+        else
+            pressingTab = false
+        end
+    end
+end
