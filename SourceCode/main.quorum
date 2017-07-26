@@ -29,6 +29,12 @@ class Main is Game
     integer initialSeconds = 69
     number proximityDelta = 40.0
     number timeBonus = 30.0
+    number muzzleVolumeLow = 0.1
+    number muzzleVolumeHigh = 1
+    number alienVolumeLow = 0.05
+    number alienVolumeHigh = 1
+    number muzzleOffset = 100
+    number listenerZ = 60
     
     
     Color color
@@ -37,8 +43,9 @@ class Main is Game
     Audio soundR
     Audio soundL
     Audio soundAlien
+    Audio soundMuzzle
+    
 
-    Audio beepShip
     Audio beepAlien
 
     number remainingTime = initialSeconds
@@ -83,12 +90,22 @@ class Main is Game
        random:SetSeed(datetime:GetEpochTime())
 
        sound:Load("Sounds/Rocket.wav")
+       sound:SetVolume(0.1)
        soundR:Load("Sounds/rot.wav")
        soundL:Load("Sounds/rot.wav")
+       soundL:SetVolume(0.05)
+       soundR:SetVolume(0.05)
        soundAlien:Load("Sounds/Hello.wav")
+       soundAlien:SetPitch(1.5)
+       soundAlien:SetVolume(0.5)
 
        beepAlien:Load("Sounds/alien.wav")
-       beepShip:Load("Sounds/ship.wav")
+
+       soundMuzzle:Load("Sounds/ship.wav")
+       
+       beepAlien:SetListenerZ(listenerZ)
+
+       speech:SetVolume(0.2)
 
     //Load Assets
 
@@ -145,25 +162,24 @@ class Main is Game
 
     //Configure Physics stuff
         EnablePhysics2D(true)
-        /*
+        
         say "Welcome to alien savior!"
         say "Your objective is to find and collect as many Aliens as possible."
+        say "Aliens emit a beeping sound."
         say "Use the up key to thrust your ship forward."
         say "Use the left and right keys to rotate your ship."
-        say "Use the Zee key to hear your ships position."
-        say "Use the A key to hear your ships speed."
-        say "Use the Q key to hear your ships orientation."
-        say "Use the X key to hear the aliens position."
-        say "Use the S key to hear how many aliens you have rescued this far."
-        say "Use the tab key to activate advance mode."
+        say "When rotating the ship, you will hear a beeping, according to the orientation of the ship."
         say "Aliens will say. Hello! When you rescue them."
         say "You win " + timeBonus:GetText() + " seconds each time you rescue an Alien."
-        say "Are you ready? Go!"*/
+        say "Are you ready? Go!"
 
         beepAlien:Play()
         beepAlien:EnableLooping()
-        beepShip:Play()
-        beepShip:EnableLooping()
+        
+        soundMuzzle:SetPosition(ship:GetX(),ship:GetY()+muzzleOffset,0)
+        soundMuzzle:Play()
+        soundMuzzle:SetVolume(muzzleVolumeLow)
+        soundMuzzle:EnableLooping()
         
     end
 
@@ -185,13 +201,19 @@ class Main is Game
         end
         if remainingTime < remainingDecTime
             speech:Say(remainingDecTime:GetText() + " seconds remaining")
+            
             remainingDecTime = cast(integer,(remainingTime/10))*10
         end
 
-         beepAlien:SetX(alien:GetX())
+        beepAlien:SetX(alien:GetX())
         beepAlien:SetY(alien:GetY())
-        beepShip:SetX(ship:GetX())
-        beepShip:SetY(ship:GetY())
+
+        beepAlien:SetListenerX(ship:GetX())
+        beepAlien:SetListenerY(ship:GetY())
+        
+        //---
+        
+
 
         //check win condition
         number distance = math:SquareRoot(math:RaiseToPower(ship:GetX()-alien:GetX(),2)+math:RaiseToPower(ship:GetY()-alien:GetY(),2))
@@ -243,30 +265,38 @@ class Main is Game
         end
 
         if monitor:IsKeyPressed(keys:LEFT)
-            if not playingSoundL
-                playingSoundL = true
-                
-                soundL:Play()
-            end
+            beepAlien:SetVolume(alienVolumeLow)
+            playingSoundL = true
             ship:Rotate(-rotSpeed*seconds)
+            number rot = ship:GetRotationInRadians()
+            number compX = muzzleOffset*math:Sine(rot) + ship:GetX()
+            number compY = muzzleOffset*math:Cosine(rot) + ship:GetY()
+            soundMuzzle:SetPosition(compX,compY,listenerZ)
+            soundMuzzle:SetVolume(muzzleVolumeHigh)
         else
-            if playingSoundL
-                soundL:Stop()
-            end
             playingSoundL = false
+            if not playingSoundR
+                beepAlien:SetVolume(alienVolumeHigh)
+                soundMuzzle:SetVolume(muzzleVolumeLow)
+            end
         end
 
         if monitor:IsKeyPressed(keys:RIGHT)
-            if not playingSoundR
-                playingSoundR = true
-                soundR:Play()
-            end
+            beepAlien:SetVolume(alienVolumeLow)
+            playingSoundR = true
             ship:Rotate(rotSpeed*seconds)
+            number rot = ship:GetRotationInRadians()
+            number compX = muzzleOffset*math:Sine(rot) + ship:GetX()
+            number compY = muzzleOffset*math:Cosine(rot) + ship:GetY()
+            soundMuzzle:SetPosition(compX,compY,listenerZ)
+            soundMuzzle:SetVolume(muzzleVolumeHigh)
+            
         else
-            if playingSoundR
-                soundR:Stop()
-            end
             playingSoundR = false
+            if not playingSoundL
+                beepAlien:SetVolume(alienVolumeHigh)
+                soundMuzzle:SetVolume(muzzleVolumeLow)  
+            end
         end
 
         if monitor:IsKeyPressed(keys:A)
